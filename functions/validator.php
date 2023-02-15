@@ -142,6 +142,7 @@ function is_already_exists_on_create(string $value, string $table, string $colum
     // $req->fetch();
 
     $row = $req->rowCount();
+    $req->closeCursor();
 
     if ($row == 0) {
         return false;

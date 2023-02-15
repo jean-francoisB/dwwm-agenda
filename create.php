@@ -105,6 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else if (is_invalid_phone($post_clean['phone'])) // Pause
         {
             $errors['phone'] = "Veuillez entrer un numéro de téléphone valide.";
+        } else if (is_already_exists_on_create($post_clean['phone'], "contact", "phone")) {
+            $errors['phone'] = "Ce numéro de téléphone appartient déjà à l'un de vos contacts.";
         }
     }
 
@@ -117,25 +119,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors['comment'] = "Le commentaire ne doit pas dépasser 4000 caractères.";
             }
         }
-        // Si le tableau contient au moins 1 erreur
-
-        if (count($errors) > 0) {
-            // Sauvegardons les messages d'erreurs en session.
-            $_SESSION['create_form_errors'] = $errors;
-
-            // Sauvegardon les données provenant du formulaire en session
-            $_SESSION['create_form_old_values'] = $post_clean;
-
-            // Effectuons une redirection vers la page de laquelle proviennent les informations
-            //Puis, arrêtons l'éxécution du script
-            header("Location: " . $_SERVER["HTTP_REFERER"]);
-        }
-
-
-        echo "<pre>";
-        var_dump($errors);
-        die();
     }
+
+    // Si le tableau contient au moins 1 erreur
+    if (count($errors) > 0) {
+        // Sauvegardons les messages d'erreurs en session.
+        $_SESSION['create_form_errors'] = $errors;
+
+        // Sauvegardon les données provenant du formulaire en session
+        $_SESSION['create_form_old_values'] = $post_clean;
+
+        // Effectuons une redirection vers la page de laquelle proviennent les informations
+        //Puis, arrêtons l'éxécution du script
+        header("Location: " . $_SERVER["HTTP_REFERER"]);
+    }
+
+    // Appelons le manager
+    require __DIR__ . "/functions/manager.php";
+
+    // Effectuons la requête d'insertion des données dans la table "contact"
+    create_contact([
+        "first_name"   => $post_clean['first_name'],
+        "last_name"    => $post_clean['last_name'],
+        "email"        => $post_clean['email'],
+        "age"          => $post_clean['age'],
+        "phone"        => $post_clean['phone'],
+        "comment"      => $post_clean['comment'],
+
+    ]);
+
+    // Génerer un message a l'utilisateur pour lui dire que tout s'est bien passé
+
+
+    $_SESSION['success'] = "Le contact a été ajouté à la liste avec succès";
+
+    // Effectuons une redirection vers la page d'accueil
+    // Puis, arrêtons l'exécution du script.
+    return header("Location: index.php");
 }
 
 $_SESSION['create_form_csrf_token'] = bin2hex(random_bytes(40));
@@ -203,14 +223,14 @@ $_SESSION['create_form_csrf_token'] = bin2hex(random_bytes(40));
                             <div class="mb-3">
                                 <label for="create_form_email">Email</label>
                                 <input type="email" name="email" id="create_form_email" class="form-control" value="<?= isset($_SESSION['create_form_old_values']['email']) ? $_SESSION['create_form_old_values']['email'] : '';
-                                                                                                                            unset($_SESSION['create_form_old_values']['email']); ?>">
+                                                                                                                    unset($_SESSION['create_form_old_values']['email']); ?>">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="create_form_age">Age</label>
                                 <input type="number" name="age" id="create_form_age" class="form-control" value="<?= isset($_SESSION['create_form_old_values']['age']) ? $_SESSION['create_form_old_values']['age'] : '';
-                                                                                                                            unset($_SESSION['create_form_old_values']['age']); ?>">
+                                                                                                                    unset($_SESSION['create_form_old_values']['age']); ?>">
                             </div>
                         </div>
                     </div>
@@ -218,12 +238,13 @@ $_SESSION['create_form_csrf_token'] = bin2hex(random_bytes(40));
                     <div class="mb-3">
                         <label for="create_form_phone">Numéro de téléphone</label>
                         <input type="tel" name="phone" id="create_form_phone" class="form-control" value="<?= isset($_SESSION['create_form_old_values']['phone']) ? $_SESSION['create_form_old_values']['phone'] : '';
-                                                                                                                            unset($_SESSION['create_form_old_values']['phone']); ?>">
+                                                                                                            unset($_SESSION['create_form_old_values']['phone']); ?>">
                     </div>
 
                     <div class="mb-3">
                         <label for="create_form_comment">Commentaires</label>
-                        <textarea name="comment" id="create_form_comment" class="form-control" rows="4"><?= isset($_SESSION['create_form_old_values']['comment']) ? $_SESSION['create_form_old_values']['comment'] : '' ; unset($_SESSION['create_form_old_values']['comment']); ?></textarea>
+                        <textarea name="comment" id="create_form_comment" class="form-control" rows="4"><?= isset($_SESSION['create_form_old_values']['comment']) ? $_SESSION['create_form_old_values']['comment'] : '';
+                                                                                                        unset($_SESSION['create_form_old_values']['comment']); ?></textarea>
                     </div>
 
                     <div class="mb-3 d-none">
