@@ -152,6 +152,46 @@ function is_already_exists_on_create(string $value, string $table, string $colum
 
     // ($row  == 0) ? false : true; 
 }
+/**
+ *Elle permet  de vérifier si la valeur envoyée par l'utilisateur existe déjà ou pas
+ *
+ *Cette fonction force une règle unique a ignorer un ID donné
+ *
+ *
+ * Elle retournée "true" si la valeur existe déjà en ignorant celle de l'entité sur laquelle
+ * la modification est faite et "false" dans le cas contraire
+ * 
+ * @param string $value
+ * @param string $table
+ * @param string $column
+ * @param [type] $id
+ * @return boolean
+ */
+function is_already_exists_on_update(string $value, string $table, string $column, $id)
+{
+    // On se connecte a la base de données
+    require __DIR__ . "/../db/connexion.php";
+
+    // On récupére tous les éléments de la base de données "all_rows" de la table ciblée
+    $req = $db->prepare("SELECT * FROM {$table}");
+    // Exécutons la requete
+    $req->execute();
+    //recupérons tous les enregistrements de la table
+    $all_rows = $req->fetchAll();
+    // Je parcoure chaque élément de la base de données 
+    foreach ($all_rows as $row) {
+        // Si son id n'est pas le meme que celui de l'entité dont on souhaite modifier les colonnes
+        if ($row['id'] != $id) {
+            // Si la valeur associée a la colonne de cette entité est la meme chose que la valeur envoyée
+            // par l'utilisateur depuis le formulaire
+            if ($row[$column] == $value) {
+                // C'est que la valeur envoyée par l'utilisateur existe déjà dans la table
+                return true;
+            }
+         
+        }
+    }
+}
 
 
 /**

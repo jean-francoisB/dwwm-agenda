@@ -9,6 +9,9 @@ $contacts = find_all_contacts();
 // echo "<pre>";
 // var_dump($contacts);
 // die();
+
+$_SESSION['delete_contact_csrf_token'] = bin2hex(random_bytes(40));
+ 
 ?>
 <?php //-------------------------------View ---------------------------------------------
 ?>
@@ -34,20 +37,28 @@ $contacts = find_all_contacts();
 
 
     <div class="d-flex justify-content-end align-items-center">
-        <a href="create.php" class="btn btn-primary shadow"><i class="fa-solid fa-plus"></i> Nouveau contact</a>
+        <a data-aos="flip-right" data-aos-duration="3000" href="create.php" class="btn btn-primary shadow"><i class="fa-solid fa-plus"></i> Nouveau contact</a>
     </div>
 
     <div class="container">
         <div class="d-flex flex-column justify-content-center align-items-center">
             <?php foreach ($contacts as $contact) : ?>
-                <div class="my-card my-3 shadow p-4">
+                <div data-aos="fade-up" data-aos-duration="3000" class="my-card my-3 shadow p-4">
                     <p><strong>Prénom</strong> : <?= htmlspecialchars($contact['first_name']); ?></p>
                     <p><strong>Nom</strong> : <?= htmlspecialchars($contact['last_name']); ?></p>
                     <p><strong>Email</strong> : <?= htmlspecialchars($contact['email']); ?></p>
                     <p><strong>Téléphone</strong> : <?= htmlspecialchars($contact['phone']); ?></p>
                     <hr>
-                    <a class="text-dark" href="#" data-bs-toggle="modal" data-bs-target="#modal_<?= htmlspecialchars($contact['id']) ?>"><i class="fa-solid fa-eye"></i></a>
-
+                    <a class="text-dark mx-2" title="Voir les détails" href="#" data-bs-toggle="modal" data-bs-target="#modal_<?= htmlspecialchars($contact['id']) ?>"><i class="fa-solid fa-eye"></i></a>
+                    <a class="text-secondary mx-2" title="Modifier ce contact" href="edit.php?contact_id=<?= htmlspecialchars($contact['id']) ?>"><i class="fa-solid fa-pencil"></i></a>
+                    <!-- Création du bouton supprimer -->
+                    <a class="text-danger" href="#" onclick="event.preventDefault(); confirm('Confirmer la suppression?') && document.querySelector('#delete_' + <?= htmlspecialchars($contact['id']) ?>).submit();" title="Supprimer ce contact"><i class="fa-solid fa-trash-can"></i></a>
+                    
+                    <form id="delete_<?= htmlspecialchars($contact['id']) ?>" action="delete.php" method="POST">
+                        <input type="hidden" name="delete_contact_csrf_token" value="<?= $_SESSION['delete_contact_csrf_token'] ?>">
+                        <input type="hidden" name="contact_id" value="<?= htmlspecialchars($contact['id']) ?>">
+                        <!-- <input type="submit" class="btn btn-sm btn-danger" value="Supprimer"> -->
+                    </form>
 
 
                     <!-- Modal  on modifie l'id car il doit etre différent pour chaque modal-->
@@ -59,17 +70,17 @@ $contacts = find_all_contacts();
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <?php if(isset($contact['age']) && !empty($contact['age'])) : ?>
+                                    <?php if (isset($contact['age']) && !empty($contact['age'])) : ?>
                                         <p> <strong>Age</strong> : <?= $contact['age'] ?> </p>
-                                        <?php else : ?>
+                                    <?php else : ?>
                                         <p> <em>Age non renseigné</em> </p>
-                                        <?php endif ?>
+                                    <?php endif ?>
 
-                                        <?php if(isset($contact['comment']) && !empty($contact['comment'])) : ?>
-                                        <p> <strong>Commentaires</strong> : <?= $contact['comment'] ?> </p>
-                                        <?php else : ?>
+                                    <?php if (isset($contact['comment']) && !empty($contact['comment'])) : ?>
+                                        <p> <strong>Commentaires</strong> : <?= nl2br($contact['comment']) ?> </p>
+                                    <?php else : ?>
                                         <p> <em>Commentaire non renseigné</em> </p>
-                                        <?php endif ?>
+                                    <?php endif ?>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fermer</button>

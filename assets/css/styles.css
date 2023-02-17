@@ -1,3 +1,13 @@
+/**
+******************************************************************************
+* Adoption d'une philosophie Mobile-First
+******************************************************************************
+*
+*
+*
+*/
+
+/*******************************Pour les mobiles******************************/
 * {
     font-family: 'Poppins', sans-serif;
 }
@@ -14,4 +24,27 @@ body{
 nav a, footer p {
     font-family: 'Pacifico', cursive;
 
+}
+
+.my-card{
+    width:100%;
+    border-radius: 2rem;
+}
+.my-card:hover{
+    background-color: white;
+}
+
+
+/************************* Pour les tablettes **************************  */
+@media screen and (min-width:768px){
+    .my-card{
+        width:80%;
+    }
+}
+
+/************************* Pour les laptops********************************/
+@media screen and (min-width:900px){
+    .my-card{
+        width:50%;
+    }
 }
